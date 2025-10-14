@@ -72,6 +72,7 @@ const login = (req, res) => {
             id: user._id,
             email: user.email,
             username: user.username,
+            role: user.role,
           });
           res.setHeader("Authorization", `Bearer ${token}`);
           res.status(200).json({
@@ -80,6 +81,7 @@ const login = (req, res) => {
               id: user._id,
               username: user.username,
               email: user.email,
+              role: user.role,
               isVerified: user.isVerified,
             },
             token,
