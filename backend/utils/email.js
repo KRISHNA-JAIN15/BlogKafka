@@ -1,4 +1,4 @@
-const { transporter } = require("./email.config.js");
+const { createTransporter } = require("./email.config.js");
 const {
   Verification_Email_Template,
   Welcome_Email_Template,
@@ -6,8 +6,9 @@ const {
 
 const sendVerificationEmail = async (email, verificationCode) => {
   try {
+    const transporter = createTransporter();
     const response = await transporter.sendMail({
-      from: '"Krishna" <krishna.j23@iiits.in>',
+      from: `"NewsNet" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Verify your Email",
       text: "Verify your Email",
@@ -16,24 +17,31 @@ const sendVerificationEmail = async (email, verificationCode) => {
         verificationCode
       ),
     });
-    console.log("Email sent successfully", response);
+    console.log("Email sent successfully", response.messageId);
+    return true;
   } catch (error) {
-    console.log("Email error", error);
+    console.error("Email error:", error.message);
+    console.log(`🔐 VERIFICATION CODE for ${email}: ${verificationCode}`);
+    return false;
   }
 };
 
 const sendWelcomeEmail = async (email, name) => {
   try {
+    const transporter = createTransporter();
     const response = await transporter.sendMail({
-      from: '"Krishna" <krishna.j23@iiits.in>',
+      from: `"NewsNet" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Welcome Email",
+      subject: "Welcome to NewsNet!",
       text: "Welcome Email",
       html: Welcome_Email_Template.replace("{name}", name),
     });
-    console.log("Email sent successfully", response);
+    console.log("Welcome email sent successfully", response.messageId);
+    return true;
   } catch (error) {
-    console.log("Email error", error);
+    console.error("Welcome email error:", error.message);
+    console.log(`🎉 Welcome message for ${name} (${email})`);
+    return false;
   }
 };
 
