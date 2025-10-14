@@ -1,6 +1,6 @@
-import nodemailer from "nodemailer";
+const nodemailer = require("nodemailer");
 
-export const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   host: "smtp.gmail.com",
   port: 587,
   secure: false, // true for 465, false for other ports
@@ -9,3 +9,5 @@ export const transporter = nodemailer.createTransport({
     pass: "ixcj ppjr iupe awxy",
   },
 });
+
+module.exports = { transporter };

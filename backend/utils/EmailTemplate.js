@@ -1,4 +1,4 @@
-export const Verification_Email_Template = `
+const Verification_Email_Template = `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -70,17 +70,14 @@ export const Verification_Email_Template = `
               <p>If you did not create an account, no further action is required. If you have any questions, feel free to contact our support team.</p>
           </div>
           <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Your Company. All rights reserved.</p>
+              <p>&copy; ${new Date().getFullYear()} NewsNet. All rights reserved.</p>
           </div>
       </div>
   </body>
   </html>
 `;
 
-
-
-
-export const Welcome_Email_Template = `
+const Welcome_Email_Template = `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -162,12 +159,14 @@ export const Welcome_Email_Template = `
                   <li>Reach out to our support team if you have any questions or need assistance.</li>
               </ul>
               <a href="#" class="button">Get Started</a>
-              <p>If you need any help, don’t hesitate to contact us. We’re here to support you every step of the way.</p>
+              <p>If you need any help, don't hesitate to contact us. We're here to support you every step of the way.</p>
           </div>
           <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Your Company. All rights reserved.</p>
+              <p>&copy; ${new Date().getFullYear()} NewsNet. All rights reserved.</p>
           </div>
       </div>
   </body>
   </html>
 `;
+
+module.exports = { Verification_Email_Template, Welcome_Email_Template };
