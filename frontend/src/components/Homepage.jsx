@@ -2,14 +2,35 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Hyperspeed from "./Hyperspeed";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 import "./css/Homepage.css";
 
 const Homepage = () => {
   const newsCategories = [
-    { title: "Technology", count: "2.3k", color: "tech" },
-    { title: "Science", count: "1.8k", color: "science" },
-    { title: "Innovation", count: "1.2k", color: "innovation" },
-    { title: "Future", count: "956", color: "future" },
+    {
+      title: "Artificial Intelligence",
+      count: "2.3k",
+      color: "tech",
+      description: "AI breakthroughs and neural networks",
+      icon: "🤖",
+      trending: "GPT-5 Release",
+    },
+    {
+      title: "Climate Tech",
+      count: "1.8k",
+      color: "science",
+      description: "Renewable energy & carbon capture",
+      icon: "🌱",
+      trending: "Solar Efficiency",
+    },
+    {
+      title: "Space Exploration",
+      count: "1.2k",
+      color: "innovation",
+      description: "Mars missions & space technology",
+      icon: "🚀",
+      trending: "Mars Colony",
+    },
   ];
 
   const featuredArticles = [
@@ -96,24 +117,7 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section id="categories" className="categories">
-        <div className="container">
-          <h2 className="section-title">Explore Categories</h2>
-          <div className="categories-grid">
-            {newsCategories.map((category, index) => (
-              <div key={index} className={`category-card ${category.color}`}>
-                <div className="category-icon"></div>
-                <h3>{category.title}</h3>
-                <p>{category.count} articles</p>
-                <div className="category-arrow">→</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Hyperspeed Background Effect */}
+      {/* Experience the Future with Categories */}
       <section className="hyperspeed-section">
         <div className="hyperspeed-container">
           <Hyperspeed
@@ -162,8 +166,36 @@ const Homepage = () => {
               </h2>
               <p className="hyperspeed-subtitle">
                 Dive into tomorrow's technology with immersive storytelling and
-                cutting-edge insights
+                cutting-edge insights. Explore breakthrough innovations that are
+                reshaping our world.
               </p>
+              <div className="future-categories-grid">
+                {newsCategories.map((category, index) => (
+                  <div
+                    key={index}
+                    className={`future-category-card ${category.color}`}
+                  >
+                    <div className="future-category-icon">{category.icon}</div>
+                    <div className="future-category-content">
+                      <h3 className="future-category-title">
+                        {category.title}
+                      </h3>
+                      {/* <p className="future-category-description">
+                        {category.description}
+                      </p> */}
+                      <div className="future-category-stats">
+                        <span className="future-article-count">
+                          {category.count} articles
+                        </span>
+                        {/* <span className="future-trending-topic">
+                          🔥 {category.trending}
+                        </span> */}
+                      </div>
+                    </div>
+                    <div className="future-category-arrow">→</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -235,36 +267,7 @@ const Homepage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <h3>NewsFlow</h3>
-              <p>Shaping tomorrow's stories today</p>
-            </div>
-            <div className="footer-links">
-              <div className="footer-section">
-                <h4>Platform</h4>
-                <a href="#">About</a>
-                <a href="#">Features</a>
-                <a href="#">Pricing</a>
-              </div>
-              <div className="footer-section">
-                <h4>Content</h4>
-                <a href="#">Categories</a>
-                <a href="#">Authors</a>
-                <a href="#">Archive</a>
-              </div>
-              <div className="footer-section">
-                <h4>Support</h4>
-                <a href="#">Help Center</a>
-                <a href="#">Contact</a>
-                <a href="#">Privacy</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

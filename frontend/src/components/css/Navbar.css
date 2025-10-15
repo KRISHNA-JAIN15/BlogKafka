@@ -313,3 +313,62 @@ html {
     border: 2px solid #ffffff !important;
   }
 }
+
+/* Add new auth group styles */
+.nav-auth-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 8px 16px;
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 107, 107, 0.1);
+  border-color: #ff6b6b;
+  color: #ff8a8a;
+}
+
+.signup-btn {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.signup-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+@media (max-width: 768px) {
+  .nav-auth-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .logout-btn,
+  .signup-btn {
+    width: 100%;
+    text-align: center;
+    padding: 12px 16px;
+  }
+}

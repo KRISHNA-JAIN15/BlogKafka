@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import "./css/Navbar.css";
+import { useSelector, useDispatch } from "react-redux";
+import { logoutUser } from "../store/slices/authSlice";
 import "./css/Navbar.css";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const dispatch = useDispatch();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +26,11 @@ const Navbar = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    closeMenu();
   };
 
   return (
@@ -53,9 +62,30 @@ const Navbar = () => {
           <a href="#trending" onClick={closeMenu}>
             Trending
           </a>
-          <Link to="/login" className="nav-auth" onClick={closeMenu}>
-            Sign In
-          </Link>
+
+          {isAuthenticated ? (
+            <div className="nav-auth-group">
+              <Link to="/dashboard" className="nav-auth" onClick={closeMenu}>
+                Welcome, {user?.username}
+              </Link>
+              <button onClick={handleLogout} className="nav-auth logout-btn">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="nav-auth-group">
+              <Link to="/login" className="nav-auth" onClick={closeMenu}>
+                Sign In
+              </Link>
+              <Link
+                to="/signup"
+                className="nav-auth signup-btn"
+                onClick={closeMenu}
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Mobile Menu Overlay */}
