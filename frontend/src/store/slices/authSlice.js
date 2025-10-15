@@ -151,6 +151,9 @@ const initialState = {
   error: null,
   message: null,
   pendingVerification: null, // Store email for users pending verification
+  verificationSuccess: false,
+  resendSuccess: false,
+  loginError: false,
 };
 
 // Auth slice
@@ -170,14 +173,39 @@ const authSlice = createSlice({
     clearPendingVerification: (state) => {
       state.pendingVerification = null;
     },
+    clearVerificationSuccess: (state) => {
+      state.verificationSuccess = false;
+    },
+    clearResendSuccess: (state) => {
+      state.resendSuccess = false;
+    },
+    clearLoginError: (state) => {
+      state.loginError = false;
+    },
     loadUserFromStorage: (state) => {
       const token = localStorage.getItem("token");
       const user = localStorage.getItem("user");
 
       if (token && user) {
-        state.token = token;
-        state.user = JSON.parse(user);
-        state.isAuthenticated = true;
+        try {
+          const parsedUser = JSON.parse(user);
+          // Only allow authenticated state if user is verified
+          if (parsedUser.isVerified) {
+            state.token = token;
+            state.user = parsedUser;
+            state.isAuthenticated = true;
+          } else {
+            // Clear storage for unverified users
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            state.pendingVerification = parsedUser.email;
+          }
+        } catch (error) {
+          // Clear corrupted data
+          console.error("Error parsing stored user data:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        }
       }
     },
   },
@@ -216,10 +244,17 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload.message;
+        state.loginError = true; // Add flag for login error
 
-        // Handle unverified user case
+        // Handle unverified user case - do NOT allow login
         if (action.payload.email && action.payload.userId) {
           state.pendingVerification = action.payload.email;
+          state.isAuthenticated = false;
+          state.user = null;
+          state.token = null;
+          // Clear any stored auth data for unverified users
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
         }
       })
 
@@ -233,10 +268,12 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.message = action.payload.message;
         state.pendingVerification = null;
+        state.verificationSuccess = true; // Add flag for successful verification
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+        state.verificationSuccess = false;
       })
 
       // Resend verification cases
@@ -248,10 +285,12 @@ const authSlice = createSlice({
       .addCase(resendVerificationCode.fulfilled, (state, action) => {
         state.isLoading = false;
         state.message = action.payload.message;
+        state.resendSuccess = true; // Add flag for successful resend
       })
       .addCase(resendVerificationCode.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+        state.resendSuccess = false;
       })
 
       // Logout cases
@@ -264,8 +303,10 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.error = null;
-        state.message = "Logout successful";
+        state.message = null; // Remove automatic logout message
         state.pendingVerification = null;
+        state.verificationSuccess = false;
+        state.resendSuccess = false;
       })
       .addCase(logoutUser.rejected, (state) => {
         // Even if logout fails, clear the state
@@ -274,6 +315,8 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.pendingVerification = null;
+        state.verificationSuccess = false;
+        state.resendSuccess = false;
       });
   },
 });
@@ -284,6 +327,9 @@ export const {
   setPendingVerification,
   clearPendingVerification,
   loadUserFromStorage,
+  clearVerificationSuccess,
+  clearResendSuccess,
+  clearLoginError,
 } = authSlice.actions;
 
 export default authSlice.reducer;

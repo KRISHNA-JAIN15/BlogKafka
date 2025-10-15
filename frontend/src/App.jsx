@@ -7,6 +7,8 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import VerifyEmail from "./components/VerifyEmail";
 import Dashboard from "./components/Dashboard";
+import NewsPage from "./components/NewsPage";
+import NewsCardDemo from "./components/NewsCardDemo";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -25,6 +27,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/news-demo" element={<NewsCardDemo />} />
         <Route
           path="/dashboard"
           element={

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import {
   signupUser,
   clearError,
@@ -18,13 +19,12 @@ const Signup = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, message, pendingVerification } = useSelector(
-    (state) => state.auth
-  );
+  const { isLoading, pendingVerification } = useSelector((state) => state.auth);
 
   // Handle navigation when signup is successful
   useEffect(() => {
     if (pendingVerification) {
+      toast.success("Account created! Check your email for verification code.");
       navigate("/verify-email", { state: { email: pendingVerification } });
     }
   }, [pendingVerification, navigate]);
@@ -48,8 +48,12 @@ const Signup = () => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      // Could dispatch a custom error here, but for now we'll handle it locally
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long!");
       return;
     }
 
@@ -74,13 +78,6 @@ const Signup = () => {
           <h1>Create Account</h1>
           <p>Join the future of tech community</p>
         </div>
-
-        {message && (
-          <div className={`message ${error ? "error" : "success"}`}>
-            {message}
-          </div>
-        )}
-        {error && <div className="message error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">

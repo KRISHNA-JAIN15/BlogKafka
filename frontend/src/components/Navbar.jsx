@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 import { logoutUser } from "../store/slices/authSlice";
 import "./css/Navbar.css";
 
@@ -29,7 +30,10 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logoutUser());
+    const loadingToast = toast.loading("Logging out...");
+    dispatch(logoutUser()).then(() => {
+      toast.success("Logged out successfully!", { id: loadingToast });
+    });
     closeMenu();
   };
 

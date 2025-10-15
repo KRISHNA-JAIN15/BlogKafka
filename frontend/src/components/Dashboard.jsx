@@ -1,5 +1,6 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 import { logoutUser } from "../store/slices/authSlice";
 import "./css/Auth.css";
 
@@ -8,7 +9,10 @@ const Dashboard = () => {
   const { user, isLoading } = useSelector((state) => state.auth);
 
   const handleLogout = () => {
-    dispatch(logoutUser());
+    const loadingToast = toast.loading("Logging out...");
+    dispatch(logoutUser()).then(() => {
+      toast.success("Logged out successfully!", { id: loadingToast });
+    });
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import { loginUser, clearError, clearMessage } from "../store/slices/authSlice";
 import "./css/Auth.css";
 
@@ -12,19 +13,22 @@ const Login = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, message, isAuthenticated, pendingVerification } =
-    useSelector((state) => state.auth);
+  const { isLoading, isAuthenticated, pendingVerification } = useSelector(
+    (state) => state.auth
+  );
 
   // Handle navigation after successful login
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard"); // Redirect to dashboard
+      toast.success("Login successful! Welcome back.");
+      navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
   // Handle unverified user - redirect to verification
   useEffect(() => {
     if (pendingVerification) {
+      toast.error("Please verify your email before logging in.");
       navigate("/verify-email", { state: { email: pendingVerification } });
     }
   }, [pendingVerification, navigate]);
@@ -67,9 +71,6 @@ const Login = () => {
           <h1>Welcome Back</h1>
           <p>Sign in to your account</p>
         </div>
-
-        {message && <div className="message success">{message}</div>}
-        {error && <div className="message error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">

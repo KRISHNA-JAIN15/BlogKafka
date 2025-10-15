@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import {
   verifyEmail,
   resendVerificationCode,
   clearError,
   clearMessage,
+  clearVerificationSuccess,
+  clearResendSuccess,
 } from "../store/slices/authSlice";
 import "./css/Auth.css";
 
@@ -17,11 +20,10 @@ const VerifyEmail = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoading, error, message } = useSelector((state) => state.auth);
+  const { isLoading, error, message, verificationSuccess, resendSuccess } =
+    useSelector((state) => state.auth);
 
-  const email = location.state?.email || "";
-
-  // Countdown timer for resend button
+  const email = location.state?.email || ""; // Countdown timer for resend button
   useEffect(() => {
     let timer;
     if (countdown > 0) {
@@ -34,13 +36,33 @@ const VerifyEmail = () => {
 
   // Handle successful verification
   useEffect(() => {
-    if (message && message.includes("successfully")) {
+    if (verificationSuccess && message && message.includes("successfully")) {
+      toast.success("Email verified successfully! Redirecting to login...");
+      dispatch(clearVerificationSuccess());
+      dispatch(clearMessage());
       const timer = setTimeout(() => {
         navigate("/login");
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [message, navigate]);
+  }, [verificationSuccess, message, navigate, dispatch]);
+
+  // Handle resend success
+  useEffect(() => {
+    if (resendSuccess) {
+      toast.success("Verification code sent! Check your email.");
+      dispatch(clearResendSuccess());
+      dispatch(clearMessage());
+    }
+  }, [resendSuccess, dispatch]);
+
+  // Handle errors only
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
 
   // Clear messages when component unmounts
   useEffect(() => {
@@ -59,6 +81,7 @@ const VerifyEmail = () => {
     e.preventDefault();
 
     if (verificationCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit verification code");
       return;
     }
 
@@ -74,7 +97,12 @@ const VerifyEmail = () => {
   };
 
   const handleResendCode = async () => {
-    if (!canResend || !email) return;
+    if (!canResend || !email) {
+      if (!email) {
+        toast.error("Email address is required to resend code");
+      }
+      return;
+    }
 
     dispatch(clearError());
     dispatch(clearMessage());
@@ -85,7 +113,6 @@ const VerifyEmail = () => {
     setCountdown(60); // 60 seconds countdown
     setVerificationCode(""); // Clear current code
   };
-
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -96,9 +123,6 @@ const VerifyEmail = () => {
             <strong>{email || "your email address"}</strong>
           </p>
         </div>
-
-        {message && <div className="message success">{message}</div>}
-        {error && <div className="message error">{error}</div>}
 
         <form onSubmit={handleVerifyEmail} className="auth-form">
           <div className="form-group">
