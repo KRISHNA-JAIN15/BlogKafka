@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { logoutUser } from "../store/slices/authSlice";
@@ -10,6 +10,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ const Navbar = () => {
     const loadingToast = toast.loading("Logging out...");
     dispatch(logoutUser()).then(() => {
       toast.success("Logged out successfully!", { id: loadingToast });
+      navigate("/"); // Redirect to homepage immediately after logout
     });
     closeMenu();
   };
@@ -71,13 +73,11 @@ const Navbar = () => {
 
           {isAuthenticated ? (
             <div className="nav-auth-group">
-              <Link to="/profile" className="nav-auth" onClick={closeMenu}>
+              <Link to="/profile" onClick={closeMenu}>
                 Profile
               </Link>
-              <Link to="/dashboard" className="nav-auth" onClick={closeMenu}>
-                Welcome, {user?.username}
-              </Link>
-              <button onClick={handleLogout} className="nav-auth logout-btn">
+              <span className="nav-auth">Welcome, {user?.username}</span>
+              <button onClick={handleLogout} className="logout-btn ">
                 Logout
               </button>
             </div>

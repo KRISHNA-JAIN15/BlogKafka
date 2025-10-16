@@ -1,18 +1,20 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { logoutUser } from "../store/slices/authSlice";
 import "./css/Auth.css";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user, isLoading } = useSelector((state) => state.auth);
 
   const handleLogout = () => {
     const loadingToast = toast.loading("Logging out...");
     dispatch(logoutUser()).then(() => {
       toast.success("Logged out successfully!", { id: loadingToast });
+      navigate("/"); // Redirect to homepage immediately after logout
     });
   };
 

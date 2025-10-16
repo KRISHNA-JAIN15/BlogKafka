@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   Card,
   CardActions,
@@ -24,6 +25,7 @@ import {
   FavoriteBorder as FavoriteBorderIcon,
   ReadMore as ReadMoreIcon,
 } from "@mui/icons-material";
+import toast from "react-hot-toast";
 import NewsImage from "./NewsImage";
 
 const NewsCard = ({
@@ -35,9 +37,42 @@ const NewsCard = ({
   isLiked = false,
 }) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const handleReadMore = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to read full articles");
+      navigate("/");
+      return;
+    }
     navigate(`/article/${news._id}`);
+  };
+
+  const handleLike = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to like articles");
+      navigate("/");
+      return;
+    }
+    onLike?.(news._id);
+  };
+
+  const handleBookmark = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to bookmark articles");
+      navigate("/");
+      return;
+    }
+    onBookmark?.(news._id);
+  };
+
+  const handleShare = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to share articles");
+      navigate("/");
+      return;
+    }
+    onShare?.(news);
   };
 
   const formatDate = (dateString) => {
@@ -287,15 +322,30 @@ const NewsCard = ({
       >
         <Box display="flex" gap={0.5}>
           {/* Like Button */}
-          <Tooltip title={isLiked ? "Unlike" : "Like"}>
+          <Tooltip
+            title={
+              isAuthenticated
+                ? isLiked
+                  ? "Unlike"
+                  : "Like"
+                : "Sign in to like"
+            }
+          >
             <IconButton
-              onClick={() => onLike?.(news._id)}
+              onClick={handleLike}
               size="small"
               sx={{
-                color: isLiked ? "#06b6d4" : "#b0bec5",
+                color: isAuthenticated
+                  ? isLiked
+                    ? "#06b6d4"
+                    : "#b0bec5"
+                  : "#ef4444",
+                opacity: isAuthenticated ? 1 : 0.7,
                 "&:hover": {
-                  color: "#06b6d4",
-                  boxShadow: "0 0 15px rgba(6, 182, 212, 0.5)",
+                  color: isAuthenticated ? "#06b6d4" : "#f97316",
+                  boxShadow: isAuthenticated
+                    ? "0 0 15px rgba(6, 182, 212, 0.5)"
+                    : "0 0 15px rgba(239, 68, 68, 0.5)",
                 },
               }}
             >
@@ -304,15 +354,30 @@ const NewsCard = ({
           </Tooltip>
 
           {/* Bookmark Button */}
-          <Tooltip title={isBookmarked ? "Remove Bookmark" : "Bookmark"}>
+          <Tooltip
+            title={
+              isAuthenticated
+                ? isBookmarked
+                  ? "Remove Bookmark"
+                  : "Bookmark"
+                : "Sign in to bookmark"
+            }
+          >
             <IconButton
-              onClick={() => onBookmark?.(news._id)}
+              onClick={handleBookmark}
               size="small"
               sx={{
-                color: isBookmarked ? "#8b5cf6" : "#b0bec5",
+                color: isAuthenticated
+                  ? isBookmarked
+                    ? "#8b5cf6"
+                    : "#b0bec5"
+                  : "#ef4444",
+                opacity: isAuthenticated ? 1 : 0.7,
                 "&:hover": {
-                  color: "#8b5cf6",
-                  boxShadow: "0 0 15px rgba(139, 92, 246, 0.5)",
+                  color: isAuthenticated ? "#8b5cf6" : "#f97316",
+                  boxShadow: isAuthenticated
+                    ? "0 0 15px rgba(139, 92, 246, 0.5)"
+                    : "0 0 15px rgba(239, 68, 68, 0.5)",
                 },
               }}
             >
@@ -321,15 +386,18 @@ const NewsCard = ({
           </Tooltip>
 
           {/* Share Button */}
-          <Tooltip title="Share">
+          <Tooltip title={isAuthenticated ? "Share" : "Sign in to share"}>
             <IconButton
-              onClick={() => onShare?.(news)}
+              onClick={handleShare}
               size="small"
               sx={{
-                color: "#b0bec5",
+                color: isAuthenticated ? "#b0bec5" : "#ef4444",
+                opacity: isAuthenticated ? 1 : 0.7,
                 "&:hover": {
-                  color: "#10b981",
-                  boxShadow: "0 0 15px rgba(16, 185, 129, 0.5)",
+                  color: isAuthenticated ? "#10b981" : "#f97316",
+                  boxShadow: isAuthenticated
+                    ? "0 0 15px rgba(16, 185, 129, 0.5)"
+                    : "0 0 15px rgba(239, 68, 68, 0.5)",
                 },
               }}
             >
@@ -345,19 +413,21 @@ const NewsCard = ({
             onClick={handleReadMore}
             variant="outlined"
             sx={{
-              borderColor: "#8b5cf6",
-              color: "#8b5cf6",
+              borderColor: isAuthenticated ? "#8b5cf6" : "#ef4444",
+              color: isAuthenticated ? "#8b5cf6" : "#ef4444",
               fontFamily: '"Orbitron", sans-serif',
               fontSize: "0.75rem",
               "&:hover": {
-                borderColor: "#06b6d4",
-                color: "#06b6d4",
-                boxShadow: "0 0 15px rgba(6, 182, 212, 0.4)",
+                borderColor: isAuthenticated ? "#06b6d4" : "#f97316",
+                color: isAuthenticated ? "#06b6d4" : "#f97316",
+                boxShadow: isAuthenticated
+                  ? "0 0 15px rgba(6, 182, 212, 0.4)"
+                  : "0 0 15px rgba(239, 68, 68, 0.4)",
               },
             }}
             endIcon={<ReadMoreIcon />}
           >
-            Read More
+            {isAuthenticated ? "Read More" : "Sign In to Read"}
           </Button>
         </Box>
       </CardActions>
