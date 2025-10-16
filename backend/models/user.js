@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema(
     topicsOfInterest: { type: [String], default: [] },
     profilePicture: { type: String, default: "" },
     bio: { type: String, default: "" },
+    bookmarkedNews: [{ type: mongoose.Schema.Types.ObjectId, ref: "News" }],
+    likedNews: [{ type: mongoose.Schema.Types.ObjectId, ref: "News" }],
   },
   { timestamps: true }
 );

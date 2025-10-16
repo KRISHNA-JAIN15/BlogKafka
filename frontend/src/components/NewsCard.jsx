@@ -72,7 +72,31 @@ const NewsCard = ({
       navigate("/");
       return;
     }
-    onShare?.(news);
+    if (onShare) {
+      onShare(news);
+    } else {
+      // Fallback share functionality
+      try {
+        if (navigator.share) {
+          navigator.share({
+            title: news.title,
+            text: news.content.substring(0, 200) + "...",
+            url: window.location.origin + `/article/${news._id}`,
+          });
+        } else {
+          // Fallback: copy to clipboard
+          const shareText = `${news.title}\n\n${news.content.substring(
+            0,
+            200
+          )}...\n\nRead more: ${window.location.origin}/article/${news._id}`;
+          navigator.clipboard.writeText(shareText);
+          toast.success("Article link copied to clipboard!");
+        }
+      } catch (error) {
+        console.error("Error sharing article:", error);
+        toast.error("Failed to share article");
+      }
+    }
   };
 
   const formatDate = (dateString) => {

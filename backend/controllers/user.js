@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const User = require("../models/user");
+const News = require("../models/news");
 const { generateToken } = require("../utils/JsonWebToken");
 const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/email");
 const {
@@ -413,6 +414,204 @@ const changePassword = async (req, res) => {
   }
 };
 
+// Bookmark functionality
+const toggleBookmark = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const newsId = req.params.newsId;
+
+    // Validate newsId
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+      return res.status(400).json({ message: "Invalid news ID" });
+    }
+
+    // Check if news exists
+    const news = await News.findById(newsId);
+    if (!news) {
+      return res.status(404).json({ message: "News article not found" });
+    }
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isBookmarked = user.bookmarkedNews.includes(newsId);
+
+    if (isBookmarked) {
+      // Remove bookmark
+      user.bookmarkedNews = user.bookmarkedNews.filter(
+        (id) => id.toString() !== newsId
+      );
+      await user.save();
+      res.status(200).json({
+        message: "Bookmark removed successfully",
+        isBookmarked: false,
+      });
+    } else {
+      // Add bookmark
+      user.bookmarkedNews.push(newsId);
+      await user.save();
+      res.status(200).json({
+        message: "Article bookmarked successfully",
+        isBookmarked: true,
+      });
+    }
+  } catch (error) {
+    console.error("Error toggling bookmark:", error);
+    res.status(500).json({
+      message: "Error toggling bookmark",
+      error: error.message,
+    });
+  }
+};
+
+// Like functionality
+const toggleLike = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const newsId = req.params.newsId;
+
+    // Validate newsId
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+      return res.status(400).json({ message: "Invalid news ID" });
+    }
+
+    // Check if news exists
+    const news = await News.findById(newsId);
+    if (!news) {
+      return res.status(404).json({ message: "News article not found" });
+    }
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isLiked = user.likedNews.includes(newsId);
+
+    if (isLiked) {
+      // Remove like
+      user.likedNews = user.likedNews.filter((id) => id.toString() !== newsId);
+      await user.save();
+      res.status(200).json({
+        message: "Like removed successfully",
+        isLiked: false,
+      });
+    } else {
+      // Add like
+      user.likedNews.push(newsId);
+      await user.save();
+      res.status(200).json({
+        message: "Article liked successfully",
+        isLiked: true,
+      });
+    }
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    res.status(500).json({
+      message: "Error toggling like",
+      error: error.message,
+    });
+  }
+};
+
+// Get user's bookmarked articles
+const getBookmarkedNews = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).populate({
+      path: "bookmarkedNews",
+      model: "News",
+      select:
+        "title content author publishedAt source image url category featured createdAt updatedAt",
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Bookmarked articles retrieved successfully",
+      bookmarks: user.bookmarkedNews,
+      count: user.bookmarkedNews.length,
+    });
+  } catch (error) {
+    console.error("Error fetching bookmarked news:", error);
+    res.status(500).json({
+      message: "Error fetching bookmarked articles",
+      error: error.message,
+    });
+  }
+};
+
+// Get user's liked articles
+const getLikedNews = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).populate({
+      path: "likedNews",
+      model: "News",
+      select:
+        "title content author publishedAt source image url category featured createdAt updatedAt",
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Liked articles retrieved successfully",
+      liked: user.likedNews,
+      count: user.likedNews.length,
+    });
+  } catch (error) {
+    console.error("Error fetching liked news:", error);
+    res.status(500).json({
+      message: "Error fetching liked articles",
+      error: error.message,
+    });
+  }
+};
+
+// Check if user has bookmarked or liked specific articles
+const checkUserInteractions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { newsIds } = req.body; // Array of news IDs to check
+
+    if (!Array.isArray(newsIds)) {
+      return res.status(400).json({ message: "newsIds must be an array" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const interactions = newsIds.map((newsId) => ({
+      newsId,
+      isBookmarked: user.bookmarkedNews.includes(newsId),
+      isLiked: user.likedNews.includes(newsId),
+    }));
+
+    res.status(200).json({
+      message: "User interactions retrieved successfully",
+      interactions,
+    });
+  } catch (error) {
+    console.error("Error checking user interactions:", error);
+    res.status(500).json({
+      message: "Error checking user interactions",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -422,4 +621,9 @@ module.exports = {
   getProfile,
   updateProfile,
   changePassword,
+  toggleBookmark,
+  toggleLike,
+  getBookmarkedNews,
+  getLikedNews,
+  checkUserInteractions,
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import axios from "axios";
 import {
   Grid,
@@ -20,6 +21,7 @@ import {
   FilterList as FilterIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
+import toast from "react-hot-toast";
 import NewsCard from "./NewsCard";
 
 // Suppress MUI Grid deprecation warnings
@@ -32,6 +34,7 @@ console.warn = (message, ...args) => {
 };
 
 const NewsGrid = () => {
+  const { isAuthenticated, token } = useSelector((state) => state.auth);
   const [news, setNews] = useState([]);
   const [filteredNews, setFilteredNews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +79,45 @@ const NewsGrid = () => {
     fetchNews();
   }, []);
 
+  // Fetch user interactions when authenticated
+  useEffect(() => {
+    const fetchUserInteractions = async () => {
+      if (!isAuthenticated || !token || news.length === 0) return;
+
+      try {
+        const newsIds = news.map((article) => article._id);
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/users/check-interactions`,
+          { newsIds },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const interactions = response.data.interactions || [];
+        const bookmarked = new Set();
+        const liked = new Set();
+
+        interactions.forEach((interaction) => {
+          if (interaction.isBookmarked) {
+            bookmarked.add(interaction.newsId);
+          }
+          if (interaction.isLiked) {
+            liked.add(interaction.newsId);
+          }
+        });
+
+        setBookmarkedNews(bookmarked);
+        setLikedNews(liked);
+      } catch (error) {
+        console.error("Error fetching user interactions:", error);
+        // Don't show error toast here as it's not critical for the page to work
+      }
+    };
+
+    fetchUserInteractions();
+  }, [isAuthenticated, token, news]);
+
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.pageYOffset > 300);
@@ -117,28 +159,124 @@ const NewsGrid = () => {
     setSelectedCategory(category);
   };
 
-  const handleBookmark = (newsId) => {
-    setBookmarkedNews((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(newsId)) {
-        newSet.delete(newsId);
-      } else {
-        newSet.add(newsId);
-      }
-      return newSet;
-    });
+  const handleBookmark = async (newsId) => {
+    if (!isAuthenticated || !token) {
+      toast.error("Please sign in to bookmark articles");
+      return;
+    }
+
+    try {
+      // Optimistic update
+      const wasBookmarked = bookmarkedNews.has(newsId);
+      setBookmarkedNews((prev) => {
+        const newSet = new Set(prev);
+        if (wasBookmarked) {
+          newSet.delete(newsId);
+        } else {
+          newSet.add(newsId);
+        }
+        return newSet;
+      });
+
+      // API call
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/users/bookmark/${newsId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success(response.data.message);
+    } catch (error) {
+      // Revert optimistic update on error
+      setBookmarkedNews((prev) => {
+        const newSet = new Set(prev);
+        if (bookmarkedNews.has(newsId)) {
+          newSet.add(newsId);
+        } else {
+          newSet.delete(newsId);
+        }
+        return newSet;
+      });
+
+      console.error("Error toggling bookmark:", error);
+      toast.error("Failed to update bookmark");
+    }
   };
 
-  const handleLike = (newsId) => {
-    setLikedNews((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(newsId)) {
-        newSet.delete(newsId);
+  const handleLike = async (newsId) => {
+    if (!isAuthenticated || !token) {
+      toast.error("Please sign in to like articles");
+      return;
+    }
+
+    try {
+      // Optimistic update
+      const wasLiked = likedNews.has(newsId);
+      setLikedNews((prev) => {
+        const newSet = new Set(prev);
+        if (wasLiked) {
+          newSet.delete(newsId);
+        } else {
+          newSet.add(newsId);
+        }
+        return newSet;
+      });
+
+      // API call
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/users/like/${newsId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success(response.data.message);
+    } catch (error) {
+      // Revert optimistic update on error
+      setLikedNews((prev) => {
+        const newSet = new Set(prev);
+        if (likedNews.has(newsId)) {
+          newSet.add(newsId);
+        } else {
+          newSet.delete(newsId);
+        }
+        return newSet;
+      });
+
+      console.error("Error toggling like:", error);
+      toast.error("Failed to update like");
+    }
+  };
+
+  const handleShare = (article) => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to share articles");
+      return;
+    }
+
+    try {
+      if (navigator.share) {
+        navigator.share({
+          title: article.title,
+          text: article.content.substring(0, 200) + "...",
+          url: window.location.origin + `/article/${article._id}`,
+        });
       } else {
-        newSet.add(newsId);
+        // Fallback: copy to clipboard
+        const shareText = `${article.title}\n\n${article.content.substring(
+          0,
+          200
+        )}...\n\nRead more: ${window.location.origin}/article/${article._id}`;
+        navigator.clipboard.writeText(shareText);
+        toast.success("Article link copied to clipboard!");
       }
-      return newSet;
-    });
+    } catch (error) {
+      console.error("Error sharing article:", error);
+      toast.error("Failed to share article");
+    }
   };
 
   const scrollToTop = () => {
@@ -422,7 +560,7 @@ const NewsGrid = () => {
 
       {/* News Grid */}
       {!loading && !error && filteredNews.length > 0 && (
-        <Grid container spacing={3}>
+        <Grid container spacing={3} margin={4}>
           {filteredNews.map((article) => (
             <Grid item xs={12} sm={6} lg={4} key={article._id}>
               <NewsCard
@@ -431,6 +569,7 @@ const NewsGrid = () => {
                 isLiked={likedNews.has(article._id)}
                 onBookmark={() => handleBookmark(article._id)}
                 onLike={() => handleLike(article._id)}
+                onShare={() => handleShare(article)}
               />
             </Grid>
           ))}

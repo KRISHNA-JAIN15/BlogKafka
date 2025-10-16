@@ -450,7 +450,7 @@ const AdminDashboard = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            {/* <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Box display="flex" alignItems="center" gap={2}>
@@ -478,7 +478,7 @@ const AdminDashboard = () => {
                   </Box>
                 </CardContent>
               </Card>
-            </Grid>
+            </Grid> */}
           </Grid>
 
           {/* News Articles Table */}

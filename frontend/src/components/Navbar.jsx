@@ -59,12 +59,12 @@ const Navbar = () => {
         </button>
 
         <div className={`nav-links ${isMenuOpen ? "active" : ""}`}>
-          <a href="/news" onClick={closeMenu}>
+          <Link to="/news" onClick={closeMenu}>
             News
-          </a>
-          <a href="/saved" onClick={closeMenu}>
+          </Link>
+          <Link to="/saved" onClick={closeMenu}>
             BookMarks & Liked
-          </a>
+          </Link>
           {user && user.role === "admin" && (
             <Link to="/admin" onClick={closeMenu}>
               Admin Dashboard

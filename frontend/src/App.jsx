@@ -11,6 +11,7 @@ import NewsPage from "./components/NewsPage";
 import ArticleDetail from "./components/ArticleDetail";
 import AdminDashboard from "./components/AdminDashboard";
 import UpdateProfile from "./components/UpdateProfile";
+import SavedNews from "./components/SavedNews";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -32,6 +33,14 @@ function App() {
         <Route path="/news" element={<NewsPage />} />
         <Route path="/article/:id" element={<ArticleDetail />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/saved"
+          element={
+            <ProtectedRoute>
+              <SavedNews />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/profile"
           element={

@@ -7,6 +7,11 @@ const {
   getProfile,
   updateProfile,
   changePassword,
+  toggleBookmark,
+  toggleLike,
+  getBookmarkedNews,
+  getLikedNews,
+  checkUserInteractions,
 } = require("../controllers/user");
 const express = require("express");
 const router = express.Router();
@@ -33,5 +38,12 @@ router.put(
   updateProfile
 );
 router.put("/change-password", checkAuth, changePassword);
+
+// Bookmark and Like routes
+router.post("/bookmark/:newsId", checkAuth, toggleBookmark);
+router.post("/like/:newsId", checkAuth, toggleLike);
+router.get("/bookmarks", checkAuth, getBookmarkedNews);
+router.get("/liked", checkAuth, getLikedNews);
+router.post("/check-interactions", checkAuth, checkUserInteractions);
 
 module.exports = router;
