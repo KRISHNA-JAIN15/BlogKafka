@@ -1,5 +1,6 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { logoutUser } from "../store/slices/authSlice";
 import "./css/Auth.css";
@@ -36,6 +37,22 @@ const Dashboard = () => {
           <p style={{ color: "#94a3b8" }}>
             <strong>Verified:</strong> {user?.isVerified ? "Yes" : "No"}
           </p>
+        </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <Link
+            to="/profile"
+            className="auth-button"
+            style={{
+              display: "inline-block",
+              textDecoration: "none",
+              textAlign: "center",
+              marginBottom: "10px",
+              background: "linear-gradient(45deg, #8b5cf6, #06b6d4)",
+            }}
+          >
+            UPDATE PROFILE
+          </Link>
         </div>
 
         <button

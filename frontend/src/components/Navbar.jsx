@@ -71,6 +71,9 @@ const Navbar = () => {
 
           {isAuthenticated ? (
             <div className="nav-auth-group">
+              <Link to="/profile" className="nav-auth" onClick={closeMenu}>
+                Profile
+              </Link>
               <Link to="/dashboard" className="nav-auth" onClick={closeMenu}>
                 Welcome, {user?.username}
               </Link>

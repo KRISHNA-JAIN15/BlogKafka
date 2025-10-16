@@ -10,6 +10,7 @@ import Dashboard from "./components/Dashboard";
 import NewsPage from "./components/NewsPage";
 import ArticleDetail from "./components/ArticleDetail";
 import AdminDashboard from "./components/AdminDashboard";
+import UpdateProfile from "./components/UpdateProfile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -31,6 +32,14 @@ function App() {
         <Route path="/news" element={<NewsPage />} />
         <Route path="/article/:id" element={<ArticleDetail />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UpdateProfile />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
