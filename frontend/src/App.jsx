@@ -8,7 +8,8 @@ import Signup from "./components/Signup";
 import VerifyEmail from "./components/VerifyEmail";
 import Dashboard from "./components/Dashboard";
 import NewsPage from "./components/NewsPage";
-import NewsCardDemo from "./components/NewsCardDemo";
+import ArticleDetail from "./components/ArticleDetail";
+import AdminDashboard from "./components/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -28,7 +29,8 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/news" element={<NewsPage />} />
-        <Route path="/news-demo" element={<NewsCardDemo />} />
+        <Route path="/article/:id" element={<ArticleDetail />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route
           path="/dashboard"
           element={

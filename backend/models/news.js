@@ -10,6 +10,7 @@ const newsSchema = new mongoose.Schema(
     image: { type: String },
     url: { type: String },
     category: { type: String },
+    featured: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

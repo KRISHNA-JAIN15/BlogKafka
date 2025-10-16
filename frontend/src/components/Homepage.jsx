@@ -1,71 +1,62 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import Hyperspeed from "./Hyperspeed";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import "./css/Homepage.css";
 
 const Homepage = () => {
+  const [featuredArticles, setFeaturedArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch featured articles on component mount
+  useEffect(() => {
+    const fetchFeaturedNews = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/news/featured?limit=6`
+        );
+        setFeaturedArticles(response.data.news);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching featured news:", err);
+        setError("Failed to load featured stories");
+        setFeaturedArticles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedNews();
+  }, []);
+
   const newsCategories = [
     {
-      title: "Artificial Intelligence",
+      title: "Tech and Innovation",
       count: "2.3k",
-      color: "tech",
-      description: "AI breakthroughs and neural networks",
+      color: "finance",
+      description: "AI breakthroughs and cutting-edge technology",
       icon: "🤖",
-      trending: "GPT-5 Release",
+      trending: "Quantum Computing",
     },
     {
-      title: "Climate Tech",
+      title: "Finance and Money",
       count: "1.8k",
-      color: "science",
-      description: "Renewable energy & carbon capture",
-      icon: "🌱",
-      trending: "Solar Efficiency",
+      color: "finance",
+      description: "Market trends and financial insights",
+      icon: "💰",
+      trending: "Crypto Surge",
     },
     {
-      title: "Space Exploration",
+      title: "World and Politics",
       count: "1.2k",
-      color: "innovation",
-      description: "Mars missions & space technology",
-      icon: "🚀",
-      trending: "Mars Colony",
-    },
-  ];
-
-  const featuredArticles = [
-    {
-      id: 1,
-      title: "The Future of Artificial Intelligence in Daily Life",
-      excerpt:
-        "Exploring how AI is reshaping the way we interact with technology and each other in unexpected ways.",
-      author: "Dr. Sarah Chen",
-      readTime: "5 min read",
-      category: "Technology",
-      image:
-        "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop&auto=format",
-    },
-    {
-      id: 2,
-      title: "Climate Innovation: New Technologies Fighting Global Warming",
-      excerpt:
-        "Revolutionary breakthroughs in renewable energy and carbon capture are offering hope for our planet.",
-      author: "Mark Rodriguez",
-      readTime: "7 min read",
-      category: "Science",
-      image:
-        "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=250&fit=crop&auto=format",
-    },
-    {
-      id: 3,
-      title: "Space Exploration: The Next Frontier for Humanity",
-      excerpt:
-        "Private companies and space agencies are making unprecedented progress in making space accessible.",
-      author: "Emily Zhang",
-      readTime: "6 min read",
-      category: "Innovation",
-      image:
-        "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=400&h=250&fit=crop&auto=format",
+      color: "politics",
+      description: "Global affairs and political developments",
+      icon: "🌍",
+      trending: "UN Summit",
     },
   ];
 
@@ -206,48 +197,83 @@ const Homepage = () => {
         <div className="container">
           <h2 className="section-title">Featured Stories</h2>
           <div className="articles-grid">
-            {featuredArticles.map((article) => (
-              <article key={article.id} className="article-card">
-                <div className="article-image">
-                  <img src={article.image} alt={article.title} />
-                  <div className="image-overlay">
-                    <span className="article-category">{article.category}</span>
-                  </div>
-                </div>
-                <div className="article-content">
-                  <div className="article-header">
-                    <span className="article-time">{article.readTime}</span>
-                  </div>
-                  <h3 className="article-title">{article.title}</h3>
-                  <p className="article-excerpt">{article.excerpt}</p>
-                  <div className="article-footer">
-                    <div className="article-author">
-                      <div className="author-avatar">
-                        <span>{article.author.charAt(0)}</span>
-                      </div>
-                      <span>{article.author}</span>
+            {loading ? (
+              <div className="loading-state">
+                <p>Loading featured stories...</p>
+              </div>
+            ) : error ? (
+              <div className="error-state">
+                <p>{error}</p>
+              </div>
+            ) : featuredArticles.length === 0 ? (
+              <div className="empty-state">
+                <p>No featured stories available at the moment.</p>
+              </div>
+            ) : (
+              featuredArticles.map((article) => (
+                <article key={article._id} className="article-card">
+                  <div className="article-image">
+                    <img
+                      src={
+                        article.image ||
+                        "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop&auto=format"
+                      }
+                      alt={article.title}
+                      onError={(e) => {
+                        e.target.src =
+                          "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop&auto=format";
+                      }}
+                    />
+                    <div className="image-overlay">
+                      <span className="article-category">
+                        {article.category || "General"}
+                      </span>
                     </div>
-                    <button className="read-more">
-                      Read More
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M5 12h14M12 5l7 7-7 7"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
                   </div>
-                </div>
-              </article>
-            ))}
+                  <div className="article-content">
+                    <div className="article-header">
+                      <span className="article-time">
+                        {new Date(article.publishedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <h3 className="article-title">{article.title}</h3>
+                    <p className="article-excerpt">
+                      {article.content.length > 150
+                        ? `${article.content.substring(0, 150)}...`
+                        : article.content}
+                    </p>
+                    <div className="article-footer">
+                      <div className="article-author">
+                        <div className="author-avatar">
+                          <span>{article.author.charAt(0)}</span>
+                        </div>
+                        <span>{article.author}</span>
+                      </div>
+                      <Link
+                        to={`/article/${article._id}`}
+                        className="read-more"
+                      >
+                        Read More
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M5 12h14M12 5l7 7-7 7"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </div>
       </section>

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardActions,
   CardContent,
-  CardMedia,
   Button,
   Typography,
   Chip,
@@ -11,23 +11,20 @@ import {
   Box,
   Avatar,
   Tooltip,
-  Collapse,
   CardHeader,
   Divider,
-  useTheme,
-  alpha,
 } from "@mui/material";
 import {
   Share as ShareIcon,
   Bookmark as BookmarkIcon,
   BookmarkBorder as BookmarkBorderIcon,
-  ExpandMore as ExpandMoreIcon,
   AccessTime as TimeIcon,
   Person as PersonIcon,
-  OpenInNew as OpenInNewIcon,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
+  ReadMore as ReadMoreIcon,
 } from "@mui/icons-material";
+import NewsImage from "./NewsImage";
 
 const NewsCard = ({
   news,
@@ -37,16 +34,10 @@ const NewsCard = ({
   isBookmarked = false,
   isLiked = false,
 }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const theme = useTheme();
+  const navigate = useNavigate();
 
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
+  const handleReadMore = () => {
+    navigate(`/article/${news._id}`);
   };
 
   const formatDate = (dateString) => {
@@ -70,37 +61,71 @@ const NewsCard = ({
 
   const getCategoryColor = (category) => {
     const colors = {
-      technology: "#2196f3",
-      business: "#4caf50",
-      sports: "#ff9800",
-      entertainment: "#e91e63",
-      health: "#00bcd4",
-      science: "#9c27b0",
-      politics: "#f44336",
-      default: "#757575",
+      "tech and innovation": "linear-gradient(45deg, #8b5cf6, #06b6d4)",
+      "finance and money": "linear-gradient(45deg, #10b981, #059669)",
+      "world and politics": "linear-gradient(45deg, #ef4444, #f97316)",
+      default: "linear-gradient(45deg, #8b5cf6, #7c3aed)",
     };
     return colors[category?.toLowerCase()] || colors.default;
   };
 
-  const defaultImage =
-    "https://via.placeholder.com/345x140/f5f5f5/666666?text=News";
+  const getCategoryGlow = (category) => {
+    const glows = {
+      "tech and innovation": "0 0 20px rgba(139, 92, 246, 0.6)",
+      "finance and money": "0 0 20px rgba(16, 185, 129, 0.6)",
+      "world and politics": "0 0 20px rgba(239, 68, 68, 0.6)",
+      default: "0 0 20px rgba(139, 92, 246, 0.6)",
+    };
+    return glows[category?.toLowerCase()] || glows.default;
+  };
 
   return (
     <Card
       sx={{
         maxWidth: 345,
         height: "fit-content",
-        transition: "all 0.3s ease-in-out",
+        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         cursor: "pointer",
+        background: "rgba(26, 20, 40, 0.85)",
+        backdropFilter: "blur(15px)",
+        border: "1px solid rgba(139, 92, 246, 0.2)",
+        borderRadius: "16px",
+        overflow: "hidden",
+        position: "relative",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background:
+            "linear-gradient(45deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1))",
+          opacity: 0,
+          transition: "opacity 0.3s ease",
+          zIndex: 0,
+        },
         "&:hover": {
-          transform: "translateY(-8px)",
-          boxShadow: theme.shadows[8],
+          transform: "translateY(-12px) scale(1.03)",
+          border: "1px solid rgba(139, 92, 246, 0.8)",
+          boxShadow:
+            "0 25px 50px rgba(139, 92, 246, 0.2), 0 0 30px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
+          "&::before": {
+            opacity: 1,
+          },
           "& .news-image": {
-            transform: "scale(1.05)",
+            transform: "scale(1.1)",
+            filter: "brightness(1.2) saturate(1.3)",
+          },
+          "& .category-chip": {
+            boxShadow: getCategoryGlow(news.category),
+            transform: "scale(1.1)",
           },
         },
-        position: "relative",
-        overflow: "hidden",
+        "& > *": {
+          position: "relative",
+          zIndex: 1,
+        },
       }}
     >
       {/* Category Badge */}
@@ -108,54 +133,85 @@ const NewsCard = ({
         <Chip
           label={news.category}
           size="small"
+          className="category-chip"
           sx={{
             position: "absolute",
             top: 12,
             left: 12,
-            zIndex: 2,
-            backgroundColor: getCategoryColor(news.category),
-            color: "white",
+            zIndex: 3,
+            background: getCategoryColor(news.category),
+            color: "#000",
             fontWeight: "bold",
             textTransform: "uppercase",
             fontSize: "0.7rem",
+            fontFamily: '"Orbitron", sans-serif',
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            transition: "all 0.3s ease",
+            backdropFilter: "blur(10px)",
           }}
         />
       )}
 
       {/* News Image */}
-      <CardMedia
-        component="img"
+      <NewsImage
+        src={news.image}
         alt={news.title}
-        height="200"
-        image={imageError ? defaultImage : news.image || defaultImage}
-        onError={handleImageError}
+        height={200}
         className="news-image"
         sx={{
-          transition: "transform 0.3s ease-in-out",
-          objectFit: "cover",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          filter: "brightness(0.9) contrast(1.1)",
+          position: "relative",
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background:
+              "linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.7) 100%)",
+            pointerEvents: "none",
+          },
         }}
       />
 
       {/* Card Header with Author Info */}
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: getCategoryColor(news.category) }}>
-            <PersonIcon />
+          <Avatar
+            sx={{
+              background: getCategoryColor(news.category),
+              border: "2px solid rgba(139, 92, 246, 0.3)",
+              boxShadow: "0 0 15px rgba(139, 92, 246, 0.3)",
+            }}
+          >
+            <PersonIcon sx={{ color: "#000" }} />
           </Avatar>
         }
         title={
           <Typography
             variant="subtitle2"
-            color="text.primary"
-            fontWeight="bold"
+            sx={{
+              color: "#8b5cf6",
+              fontWeight: "bold",
+              fontFamily: '"Orbitron", sans-serif',
+              textShadow: "0 0 10px rgba(139, 92, 246, 0.5)",
+            }}
           >
             {news.author || "Unknown Author"}
           </Typography>
         }
         subheader={
           <Box display="flex" alignItems="center" gap={0.5}>
-            <TimeIcon fontSize="small" color="action" />
-            <Typography variant="caption" color="text.secondary">
+            <TimeIcon fontSize="small" sx={{ color: "#06b6d4" }} />
+            <Typography
+              variant="caption"
+              sx={{
+                color: "#b0bec5",
+                fontFamily: '"Orbitron", sans-serif',
+              }}
+            >
               {formatDate(news.publishedAt)}
             </Typography>
           </Box>
@@ -177,6 +233,9 @@ const NewsCard = ({
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
+            color: "#ffffff",
+            fontFamily: '"Orbitron", sans-serif',
+            textShadow: "0 0 5px rgba(255, 255, 255, 0.3)",
           }}
         >
           {news.title}
@@ -184,29 +243,38 @@ const NewsCard = ({
 
         <Typography
           variant="body2"
-          color="text.secondary"
           sx={{
             display: "-webkit-box",
-            WebkitLineClamp: expanded ? "none" : 3,
+            WebkitLineClamp: 3,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
             lineHeight: 1.5,
+            color: "#b0bec5",
+            fontFamily: '"Roboto", sans-serif',
           }}
         >
-          {expanded ? news.content : truncateText(news.content)}
+          {truncateText(news.content)}
         </Typography>
 
         {/* Source */}
         {news.source && (
           <Box mt={1}>
-            <Typography variant="caption" color="primary" fontWeight="bold">
+            <Typography
+              variant="caption"
+              sx={{
+                color: "#8b5cf6",
+                fontWeight: "bold",
+                fontFamily: '"Orbitron", sans-serif',
+                textShadow: "0 0 10px rgba(139, 92, 246, 0.5)",
+              }}
+            >
               Source: {news.source}
             </Typography>
           </Box>
         )}
       </CardContent>
 
-      <Divider />
+      <Divider sx={{ borderColor: "rgba(139, 92, 246, 0.2)" }} />
 
       {/* Card Actions */}
       <CardActions
@@ -222,8 +290,14 @@ const NewsCard = ({
           <Tooltip title={isLiked ? "Unlike" : "Like"}>
             <IconButton
               onClick={() => onLike?.(news._id)}
-              color={isLiked ? "error" : "default"}
               size="small"
+              sx={{
+                color: isLiked ? "#06b6d4" : "#b0bec5",
+                "&:hover": {
+                  color: "#06b6d4",
+                  boxShadow: "0 0 15px rgba(6, 182, 212, 0.5)",
+                },
+              }}
             >
               {isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
             </IconButton>
@@ -233,8 +307,14 @@ const NewsCard = ({
           <Tooltip title={isBookmarked ? "Remove Bookmark" : "Bookmark"}>
             <IconButton
               onClick={() => onBookmark?.(news._id)}
-              color={isBookmarked ? "primary" : "default"}
               size="small"
+              sx={{
+                color: isBookmarked ? "#8b5cf6" : "#b0bec5",
+                "&:hover": {
+                  color: "#8b5cf6",
+                  boxShadow: "0 0 15px rgba(139, 92, 246, 0.5)",
+                },
+              }}
             >
               {isBookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
             </IconButton>
@@ -242,80 +322,45 @@ const NewsCard = ({
 
           {/* Share Button */}
           <Tooltip title="Share">
-            <IconButton onClick={() => onShare?.(news)} size="small">
+            <IconButton
+              onClick={() => onShare?.(news)}
+              size="small"
+              sx={{
+                color: "#b0bec5",
+                "&:hover": {
+                  color: "#10b981",
+                  boxShadow: "0 0 15px rgba(16, 185, 129, 0.5)",
+                },
+              }}
+            >
               <ShareIcon />
             </IconButton>
           </Tooltip>
         </Box>
 
         <Box display="flex" gap={0.5}>
-          {/* Read More/Less Button */}
-          {news.content.length > 150 && (
-            <Button
-              size="small"
-              onClick={handleExpandClick}
-              endIcon={
-                <ExpandMoreIcon
-                  sx={{
-                    transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 0.3s",
-                  }}
-                />
-              }
-            >
-              {expanded ? "Show Less" : "Read More"}
-            </Button>
-          )}
-
-          {/* External Link Button */}
-          {news.url && (
-            <Tooltip title="Open Original Article">
-              <IconButton
-                component="a"
-                href={news.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                size="small"
-                color="primary"
-              >
-                <OpenInNewIcon />
-              </IconButton>
-            </Tooltip>
-          )}
+          {/* Read More Button */}
+          <Button
+            size="small"
+            onClick={handleReadMore}
+            variant="outlined"
+            sx={{
+              borderColor: "#8b5cf6",
+              color: "#8b5cf6",
+              fontFamily: '"Orbitron", sans-serif',
+              fontSize: "0.75rem",
+              "&:hover": {
+                borderColor: "#06b6d4",
+                color: "#06b6d4",
+                boxShadow: "0 0 15px rgba(6, 182, 212, 0.4)",
+              },
+            }}
+            endIcon={<ReadMoreIcon />}
+          >
+            Read More
+          </Button>
         </Box>
       </CardActions>
-
-      {/* Expanded Content */}
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent sx={{ pt: 0 }}>
-          <Divider sx={{ mb: 2 }} />
-          <Typography variant="body2" color="text.secondary" paragraph>
-            {news.content}
-          </Typography>
-
-          {/* Additional metadata in expanded view */}
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{
-              mt: 2,
-              p: 1,
-              backgroundColor: alpha(theme.palette.primary.main, 0.04),
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant="caption" color="text.secondary">
-              Published: {new Date(news.publishedAt).toLocaleDateString()}
-            </Typography>
-            {news.source && (
-              <Typography variant="caption" color="primary" fontWeight="bold">
-                {news.source}
-              </Typography>
-            )}
-          </Box>
-        </CardContent>
-      </Collapse>
     </Card>
   );
 };

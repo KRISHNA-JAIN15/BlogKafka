@@ -57,15 +57,17 @@ const Navbar = () => {
         </button>
 
         <div className={`nav-links ${isMenuOpen ? "active" : ""}`}>
-          <a href="#categories" onClick={closeMenu}>
-            Categories
+          <a href="/news" onClick={closeMenu}>
+            News
           </a>
-          <a href="#featured" onClick={closeMenu}>
-            Featured
+          <a href="/saved" onClick={closeMenu}>
+            BookMarks & Liked
           </a>
-          <a href="#trending" onClick={closeMenu}>
-            Trending
-          </a>
+          {user && user.role === "admin" && (
+            <Link to="/admin" onClick={closeMenu}>
+              Admin Dashboard
+            </Link>
+          )}
 
           {isAuthenticated ? (
             <div className="nav-auth-group">
@@ -81,11 +83,8 @@ const Navbar = () => {
               <Link to="/login" className="nav-auth" onClick={closeMenu}>
                 Sign In
               </Link>
-              <Link
-                to="/signup"
-                className="nav-auth signup-btn"
-                onClick={closeMenu}
-              >
+              <Link to="/signup" className="nav-auth" onClick={closeMenu}>
+                {/*signup-btn*/}
                 Sign Up
               </Link>
             </div>

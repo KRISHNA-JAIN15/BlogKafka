@@ -8,25 +8,34 @@ const {
   deleteNews,
   getNewsByCategory,
   getLatestNews,
+  getFeaturedNews,
 } = require("../controllers/new");
-const {
-  checkAuth,
-  requireAdmin,
-  checkAdmin,
-} = require("../middleware/checkAuth");
+const { checkAdmin } = require("../middleware/checkAuth");
+const { upload } = require("../utils/cloudinary");
 
 // Public routes
 router.get("/", getAllNews); // GET /api/news
 router.get("/latest", getLatestNews); // GET /api/news/latest
+router.get("/featured", getFeaturedNews); // GET /api/news/featured
 router.get("/category/:category", getNewsByCategory); // GET /api/news/category/tech
 router.get("/:id", getNewsById); // GET /api/news/:id
 
-// Admin-only routes
-router.post("/", checkAdmin, addNews); // POST /api/news (Admin only)
-router.put("/:id", checkAdmin, updateNews); // PUT /api/news/:id (Admin only)
+// Admin-only routes with file upload
+router.post("/", checkAdmin, upload.single("image"), addNews); // POST /api/news (Admin only)
+router.put("/:id", checkAdmin, upload.single("image"), updateNews); // PUT /api/news/:id (Admin only)
 router.delete("/:id", checkAdmin, deleteNews); // DELETE /api/news/:id (Admin only)
 
 // Admin dashboard routes
+router.get("/admin/test-auth", checkAdmin, async (req, res) => {
+  console.log("🧪 Test auth endpoint hit");
+  console.log("👤 User:", req.user);
+  res.status(200).json({
+    message: "Authentication successful",
+    user: req.user,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 router.get("/admin/stats", checkAdmin, async (req, res) => {
   try {
     const News = require("../models/news");

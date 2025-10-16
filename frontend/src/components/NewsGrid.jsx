@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Grid,
   Container,
@@ -9,10 +10,10 @@ import {
   Chip,
   Stack,
   Paper,
-  Skeleton,
   Alert,
   Fab,
   Zoom,
+  CircularProgress,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -21,87 +22,14 @@ import {
 } from "@mui/icons-material";
 import NewsCard from "./NewsCard";
 
-// Sample news data - replace with actual API call
-const SAMPLE_NEWS = [
-  {
-    _id: "1",
-    title: "Revolutionary AI Technology Transforms Healthcare Industry",
-    content:
-      "A groundbreaking artificial intelligence system has been developed that can diagnose diseases with 99% accuracy. This technology represents a significant leap forward in medical diagnostics and could revolutionize how we approach healthcare in the future. The system uses advanced machine learning algorithms trained on millions of medical images and patient records.",
-    author: "Dr. Sarah Johnson",
-    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    source: "TechHealth Today",
-    image:
-      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=345&h=200&fit=crop",
-    url: "https://example.com/ai-healthcare",
-    category: "Technology",
-  },
-  {
-    _id: "2",
-    title: "Global Climate Summit Reaches Historic Agreement",
-    content:
-      "World leaders have signed a comprehensive climate agreement that sets ambitious targets for carbon reduction. The agreement includes commitments from over 190 countries to achieve net-zero emissions by 2050. This historic moment marks a turning point in global climate action.",
-    author: "Michael Chen",
-    publishedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    source: "Global News Network",
-    image:
-      "https://images.unsplash.com/photo-1569163139394-de4e4f43e4e5?w=345&h=200&fit=crop",
-    url: "https://example.com/climate-summit",
-    category: "Politics",
-  },
-  {
-    _id: "3",
-    title: "Breakthrough in Quantum Computing Achieved",
-    content:
-      "Scientists have successfully demonstrated quantum supremacy with a new quantum computer that can solve complex problems exponentially faster than traditional computers. This achievement opens up new possibilities for cryptography, drug discovery, and artificial intelligence.",
-    author: "Dr. Emily Rodriguez",
-    publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    source: "Quantum Today",
-    image:
-      "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=345&h=200&fit=crop",
-    url: "https://example.com/quantum-computing",
-    category: "Science",
-  },
-  {
-    _id: "4",
-    title: "Major Sports Championship Finals Draw Record Viewers",
-    content:
-      "The championship finals attracted over 100 million viewers worldwide, making it the most-watched sporting event of the year. The thrilling match went into overtime and featured spectacular performances from both teams.",
-    author: "Jake Morrison",
-    publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    source: "Sports Central",
-    image:
-      "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=345&h=200&fit=crop",
-    url: "https://example.com/sports-championship",
-    category: "Sports",
-  },
-  {
-    _id: "5",
-    title: "New Business Innovation Hub Opens Downtown",
-    content:
-      "A state-of-the-art innovation hub designed to foster entrepreneurship and technological advancement has opened its doors. The facility will house over 200 startups and provide resources for emerging businesses in the technology sector.",
-    author: "Lisa Park",
-    publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    source: "Business Weekly",
-    image:
-      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=345&h=200&fit=crop",
-    url: "https://example.com/innovation-hub",
-    category: "Business",
-  },
-  {
-    _id: "6",
-    title: "Revolutionary Treatment Shows Promise for Rare Disease",
-    content:
-      "Clinical trials for a new gene therapy treatment have shown remarkable results in treating a rare genetic disorder. Patients in the trial experienced significant improvements in their condition, offering hope for thousands of affected individuals worldwide.",
-    author: "Dr. Amanda Wilson",
-    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    source: "Medical Journal",
-    image:
-      "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=345&h=200&fit=crop",
-    url: "https://example.com/gene-therapy",
-    category: "Health",
-  },
-];
+// Suppress MUI Grid deprecation warnings
+const originalConsoleWarn = console.warn;
+console.warn = (message, ...args) => {
+  if (typeof message === "string" && message.includes("MUI Grid:")) {
+    return;
+  }
+  originalConsoleWarn(message, ...args);
+};
 
 const NewsGrid = () => {
   const [news, setNews] = useState([]);
@@ -116,26 +44,30 @@ const NewsGrid = () => {
 
   const categories = [
     "all",
-    "technology",
-    "politics",
-    "science",
-    "sports",
-    "business",
-    "health",
+    "tech and innovation",
+    "finance and money",
+    "world and politics",
   ];
 
   useEffect(() => {
-    // Simulate API call
+    // Fetch news from API
     const fetchNews = async () => {
       try {
         setLoading(true);
-        // Replace this with actual API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setNews(SAMPLE_NEWS);
-        setFilteredNews(SAMPLE_NEWS);
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/news?limit=50`
+        );
+
+        const newsData = response.data.news || [];
+        setNews(newsData);
+        setFilteredNews(newsData);
+        setError("");
       } catch (error) {
-        setError("Failed to fetch news");
         console.error("Error fetching news:", error);
+        setError("Failed to fetch news from server. Please try again later.");
+        // Set empty arrays so we don't show static data
+        setNews([]);
+        setFilteredNews([]);
       } finally {
         setLoading(false);
       }
@@ -156,16 +88,6 @@ const NewsGrid = () => {
   useEffect(() => {
     let filtered = news;
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (item) =>
-          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.author.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
     // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
@@ -174,8 +96,26 @@ const NewsGrid = () => {
       );
     }
 
+    // Filter by search term
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(
+        (item) =>
+          item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.author?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
     setFilteredNews(filtered);
-  }, [searchTerm, selectedCategory, news]);
+  }, [news, searchTerm, selectedCategory]);
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleCategoryFilter = (category) => {
+    setSelectedCategory(category);
+  };
 
   const handleBookmark = (newsId) => {
     setBookmarkedNews((prev) => {
@@ -201,24 +141,6 @@ const NewsGrid = () => {
     });
   };
 
-  const handleShare = async (newsItem) => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: newsItem.title,
-          text: newsItem.content.substring(0, 100) + "...",
-          url: newsItem.url || window.location.href,
-        });
-      } catch (err) {
-        console.log("Error sharing:", err);
-      }
-    } else {
-      // Fallback to clipboard
-      navigator.clipboard.writeText(newsItem.url || window.location.href);
-      // You could show a toast notification here
-    }
-  };
-
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -226,129 +148,311 @@ const NewsGrid = () => {
     });
   };
 
-  const renderSkeletonCards = () =>
-    Array.from({ length: 6 }).map((_, index) => (
-      <Grid item xs={12} sm={6} md={4} key={index}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Skeleton variant="rectangular" width="100%" height={200} />
-          <Box sx={{ pt: 2 }}>
-            <Skeleton width="60%" />
-            <Skeleton />
-            <Skeleton width="80%" />
-          </Box>
-        </Paper>
-      </Grid>
-    ));
+  const getResultsText = () => {
+    if (loading) return "Loading...";
+    if (error) return "Error loading news";
 
-  if (error) {
+    const totalResults = filteredNews.length;
+    const totalNews = news.length;
+
+    if (searchTerm || selectedCategory !== "all") {
+      return `${totalResults} result${totalResults !== 1 ? "s" : ""} found${
+        searchTerm ? ` for "${searchTerm}"` : ""
+      }${selectedCategory !== "all" ? ` in ${selectedCategory}` : ""}`;
+    }
+
+    return `${totalNews} article${totalNews !== 1 ? "s" : ""} available`;
+  };
+
+  if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">{error}</Alert>
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          minHeight="400px"
+        >
+          <CircularProgress
+            size={60}
+            sx={{
+              color: "#8b5cf6",
+              mb: 3,
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              color: "#8b5cf6",
+              fontFamily: '"Orbitron", sans-serif',
+              textAlign: "center",
+            }}
+          >
+            Loading news articles...
+          </Typography>
+        </Box>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 8 }}>
       {/* Header */}
-      <Box mb={4} textAlign="center">
-        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+      <Box sx={{ mb: 6, textAlign: "center" }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontFamily: '"Orbitron", sans-serif',
+            fontWeight: "bold",
+            background: "linear-gradient(45deg, #8b5cf6, #06b6d4)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            mb: 2,
+            textShadow: "0 0 30px rgba(139, 92, 246, 0.5)",
+          }}
+        >
           Latest News
         </Typography>
-        <Typography variant="h6" color="text.secondary" mb={3}>
-          Stay updated with the latest headlines and stories
+        <Typography
+          variant="subtitle1"
+          sx={{
+            color: "#c0c4fc",
+            maxWidth: 600,
+            mx: "auto",
+            lineHeight: 1.6,
+          }}
+        >
+          {getResultsText()}
         </Typography>
       </Box>
 
       {/* Search and Filter Controls */}
-      <Paper elevation={1} sx={{ p: 3, mb: 4 }}>
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={6}>
+      <Paper
+        sx={{
+          p: 4,
+          mb: 4,
+          background: "rgba(26, 20, 40, 0.95)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(139, 92, 246, 0.4)",
+          borderRadius: "20px",
+          boxShadow: "0 8px 32px rgba(139, 92, 246, 0.1)",
+        }}
+      >
+        <Grid container spacing={3} alignItems="flex-end">
+          {/* Search Bar */}
+          <Grid item xs={12} md={8}>
             <TextField
               fullWidth
-              placeholder="Search news..."
+              placeholder="Search news articles..."
+              variant="outlined"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon />
+                    <SearchIcon sx={{ color: "#8b5cf6", fontSize: 24 }} />
                   </InputAdornment>
                 ),
               }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "16px",
+                  background: "rgba(139, 92, 246, 0.08)",
+                  height: "56px",
+                  fontSize: "1.1rem",
+                  "& fieldset": {
+                    borderColor: "rgba(139, 92, 246, 0.3)",
+                    borderWidth: "2px",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(139, 92, 246, 0.6)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#8b5cf6",
+                    boxShadow: "0 0 0 4px rgba(139, 92, 246, 0.1)",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "#ffffff",
+                  fontSize: "1.1rem",
+                  padding: "16px 14px",
+                },
+                "& .MuiInputBase-input::placeholder": {
+                  color: "#c0c4fc",
+                  opacity: 0.8,
+                  fontSize: "1.1rem",
+                },
+              }}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-              {categories.map((category) => (
-                <Chip
-                  key={category}
-                  label={category.charAt(0).toUpperCase() + category.slice(1)}
-                  onClick={() => setSelectedCategory(category)}
-                  color={selectedCategory === category ? "primary" : "default"}
-                  variant={
-                    selectedCategory === category ? "filled" : "outlined"
-                  }
-                  sx={{ textTransform: "capitalize" }}
-                />
-              ))}
-            </Stack>
+
+          {/* Category Filter */}
+          <Grid item xs={12} md={4}>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: "#8b5cf6",
+                  mb: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontFamily: '"Orbitron", sans-serif',
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                }}
+              >
+                <FilterIcon sx={{ fontSize: 20 }} />
+                Filter by Category
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {categories.map((category) => (
+                  <Chip
+                    key={category}
+                    label={category === "all" ? "All" : category}
+                    onClick={() => handleCategoryFilter(category)}
+                    variant={
+                      selectedCategory === category ? "filled" : "outlined"
+                    }
+                    sx={{
+                      textTransform: "capitalize",
+                      fontFamily: '"Orbitron", sans-serif',
+                      fontWeight:
+                        selectedCategory === category ? "bold" : "normal",
+                      fontSize: "0.85rem",
+                      height: "36px",
+                      cursor: "pointer",
+                      mb: 1,
+                      borderRadius: "18px",
+                      background:
+                        selectedCategory === category
+                          ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
+                          : "rgba(139, 92, 246, 0.1)",
+                      color: selectedCategory === category ? "#fff" : "#8b5cf6",
+                      border:
+                        selectedCategory === category
+                          ? "none"
+                          : "2px solid rgba(139, 92, 246, 0.3)",
+                      "&:hover": {
+                        background:
+                          selectedCategory === category
+                            ? "linear-gradient(45deg, #a78bfa, #67e8f9)"
+                            : "rgba(139, 92, 246, 0.2)",
+                        boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
+                        transform: "translateY(-2px)",
+                      },
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                  />
+                ))}
+              </Stack>
+            </Box>
           </Grid>
         </Grid>
       </Paper>
 
-      {/* News Results Count */}
-      {!loading && (
-        <Typography variant="body1" color="text.secondary" mb={3}>
-          Showing {filteredNews.length} news{" "}
-          {filteredNews.length === 1 ? "article" : "articles"}
-          {searchTerm && ` for "${searchTerm}"`}
-          {selectedCategory !== "all" && ` in ${selectedCategory}`}
-        </Typography>
+      {/* Error State */}
+      {error && (
+        <Alert
+          severity="error"
+          sx={{
+            mb: 4,
+            background: "rgba(239, 68, 68, 0.1)",
+            border: "1px solid rgba(239, 68, 68, 0.3)",
+            color: "#ffffff",
+            "& .MuiAlert-icon": {
+              color: "#ef4444",
+            },
+          }}
+        >
+          {error}
+        </Alert>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && filteredNews.length === 0 && (
+        <Paper
+          sx={{
+            p: 6,
+            textAlign: "center",
+            background: "rgba(26, 20, 40, 0.85)",
+            backdropFilter: "blur(15px)",
+            border: "1px solid rgba(139, 92, 246, 0.3)",
+            borderRadius: "16px",
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              color: "#8b5cf6",
+              mb: 2,
+              fontFamily: '"Orbitron", sans-serif',
+            }}
+          >
+            {news.length === 0 ? "No Articles Available" : "No Results Found"}
+          </Typography>
+          <Typography variant="body1" sx={{ color: "#c0c4fc", mb: 3 }}>
+            {news.length === 0
+              ? "There are no news articles in the database yet. Please check back later or contact an administrator to add content."
+              : searchTerm || selectedCategory !== "all"
+              ? `No articles match your current search criteria. Try adjusting your search term or category filter.`
+              : "No articles to display."}
+          </Typography>
+          {(searchTerm || selectedCategory !== "all") && (
+            <Box>
+              <Chip
+                label="Clear Filters"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                }}
+                sx={{
+                  background: "linear-gradient(45deg, #8b5cf6, #06b6d4)",
+                  color: "#fff",
+                  fontFamily: '"Orbitron", sans-serif',
+                  cursor: "pointer",
+                }}
+              />
+            </Box>
+          )}
+        </Paper>
       )}
 
       {/* News Grid */}
-      <Grid container spacing={3}>
-        {loading ? (
-          renderSkeletonCards()
-        ) : filteredNews.length === 0 ? (
-          <Grid item xs={12}>
-            <Paper elevation={1} sx={{ p: 4, textAlign: "center" }}>
-              <Typography variant="h6" color="text.secondary">
-                No news articles found
-              </Typography>
-              <Typography variant="body2" color="text.secondary" mt={1}>
-                Try adjusting your search terms or filters
-              </Typography>
-            </Paper>
-          </Grid>
-        ) : (
-          filteredNews.map((newsItem) => (
-            <Grid item xs={12} sm={6} lg={4} key={newsItem._id}>
+      {!loading && !error && filteredNews.length > 0 && (
+        <Grid container spacing={3}>
+          {filteredNews.map((article) => (
+            <Grid item xs={12} sm={6} lg={4} key={article._id}>
               <NewsCard
-                news={newsItem}
-                onBookmark={handleBookmark}
-                onShare={handleShare}
-                onLike={handleLike}
-                isBookmarked={bookmarkedNews.has(newsItem._id)}
-                isLiked={likedNews.has(newsItem._id)}
+                news={article}
+                isBookmarked={bookmarkedNews.has(article._id)}
+                isLiked={likedNews.has(article._id)}
+                onBookmark={() => handleBookmark(article._id)}
+                onLike={() => handleLike(article._id)}
               />
             </Grid>
-          ))
-        )}
-      </Grid>
+          ))}
+        </Grid>
+      )}
 
       {/* Scroll to Top Button */}
       <Zoom in={showScrollTop}>
         <Fab
           color="primary"
-          size="small"
+          size="medium"
           onClick={scrollToTop}
           sx={{
             position: "fixed",
-            bottom: 16,
-            right: 16,
+            bottom: 32,
+            right: 32,
             zIndex: 1000,
+            background: "linear-gradient(45deg, #8b5cf6, #06b6d4)",
+            "&:hover": {
+              background: "linear-gradient(45deg, #a78bfa, #67e8f9)",
+              boxShadow: "0 0 25px rgba(139, 92, 246, 0.6)",
+            },
           }}
         >
           <KeyboardArrowUpIcon />
